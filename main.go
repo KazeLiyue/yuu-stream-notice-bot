@@ -9,23 +9,17 @@ import (
 )
 
 type (
-	// Footer 建立Embed內的Footer結構
-	Footer struct {
-		Text string `json:"text"`
-	}
-
-	// Image 建立Embed內的Image結構
-	Image struct {
-		Url string `json:"url"`
-	}
-
 	// Embed 建造Send內Embed的結構
 	Embed struct {
 		Title       string `json:"title"`
 		Description string `json:"description"`
 		Url         string `json:"url"`
-		Image       `json:"image"`
-		Footer      `json:"footer"`
+		Image       struct {
+			Url string `json:"url"`
+		} `json:"image"`
+		Footer struct {
+			Text string `json:"text"`
+		} `json:"footer"`
 	}
 	// Send 建立一個叫Send的結構
 	Send struct {
@@ -34,16 +28,14 @@ type (
 	}
 	// Yuu 建立一個Yuu結構以獲取所需要的資訊
 	Yuu struct {
-		Data `json:"data"`
-	}
-	Data struct {
-		LiveRoom `json:"live_room"`
-	}
-	LiveRoom struct {
-		LiveStatus int    `json:"liveStatus"`
-		Url        string `json:"url"`
-		Title      string `json:"title"`
-		Cover      string `json:"cover"`
+		Data struct {
+			LiveRoom struct {
+				LiveStatus int    `json:"liveStatus"`
+				Url        string `json:"url"`
+				Title      string `json:"title"`
+				Cover      string `json:"cover"`
+			} `json:"live_room"`
+		} `json:"data"`
 	}
 )
 
@@ -72,8 +64,8 @@ func main() {
 		return
 	}
 	//判斷Yuu直播間是否已開播
-	if unjson.LiveStatus == 1 {
-		dd(unjson.Title, "Yuu開播啦", unjson.Url, unjson.Cover)
+	if unjson.Data.LiveRoom.LiveStatus == 1 {
+		dd(unjson.Data.LiveRoom.Title, "Yuu開播啦", unjson.Data.LiveRoom.Url, unjson.Data.LiveRoom.Cover)
 	} else {
 
 	}
@@ -88,11 +80,11 @@ func dd(title string, des string, url string, image string) {
 				Title:       title,
 				Description: des,
 				Url:         url,
-				Image:       Image{Url: image},
-				Footer:      Footer{Text: "快來看"},
 			},
 		},
 	}
+	jsend.Embeds[0].Image.Url = image
+	jsend.Embeds[0].Footer.Text = "快來看"
 	//將string類型轉換成json格式
 	data, err := json.Marshal(jsend)
 	if err != nil {
