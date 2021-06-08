@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"time"
 )
 
 type (
@@ -39,8 +40,17 @@ type (
 	}
 )
 
+var streaming bool
+
 //獲取直播間資訊的方法
 func main() {
+	for {
+		job()
+		time.Sleep(5 * time.Minute)
+	}
+}
+
+func job() {
 	//使用http包內的Get方法獲取資料 (mid=後的數字 可更改喜歡的直播主主頁網址後的數字)
 	resp, err := http.Get("https://api.bilibili.com/x/space/acc/info?mid=539700")
 	if err != nil {
@@ -57,7 +67,7 @@ func main() {
 	}
 	//定義unjson為Yuu
 	unjson := Yuu{}
-	//使用josn包內的Unmarshal解析unjson內的資料為string
+	//使用json包內的Unmarshal解析unjson內的資料為struct
 	err = json.Unmarshal(data, &unjson)
 	if err != nil {
 		log.Println(err)
@@ -65,10 +75,15 @@ func main() {
 	}
 	//判斷Yuu直播間是否已開播
 	if unjson.Data.LiveRoom.LiveStatus == 1 {
-		dd(unjson.Data.LiveRoom.Title, "Yuu開播啦", unjson.Data.LiveRoom.Url, unjson.Data.LiveRoom.Cover)
+		//streaming行為紀錄上一次的狀態
+		if streaming == false {
+			dd(unjson.Data.LiveRoom.Title, "Yuu開播啦", unjson.Data.LiveRoom.Url, unjson.Data.LiveRoom.Cover)
+		}
+		streaming = true
 	} else {
-
+		streaming = false
 	}
+
 }
 
 //製作一個發送訊息的方法
